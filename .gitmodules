@@ -1,0 +1,3 @@
+[submodule "homebrew-cask"]
+	path = homebrew-cask
+	url = https://github.com/caskroom/homebrew-cask.git
