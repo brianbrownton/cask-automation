@@ -33,13 +33,12 @@ def doCheckVersion(current_url, v_check_version, orig_request):
 
 
 def signal_handler(signal, frame):
-    print '\nYou pressed Ctrl+C!\n'
     sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
 
 
-for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[2200:] ):
-# for index, filename in enumerate( sorted(os.listdir(path), key=str.lower) ):
+# for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[2200:] ):
+for index, filename in enumerate( sorted(os.listdir(path), key=str.lower) ):
     with open(path+'/'+filename,"r") as fi:
         version_start_string = "version "
         url_start_string = "url "
@@ -52,8 +51,7 @@ for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[2200:]
         isUsableVersion = False
         keepGoing = False
 
-        #build lists for later... not agreat way to do this but it works
-        #TODO: refactor these for loops so we loop fewer times
+        #build lists for later... not agreat way to do this but it works for now
         for ln in fi:
             ln = ln.strip()
             if ln.startswith(version_start_string):
