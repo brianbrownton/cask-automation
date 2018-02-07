@@ -1,0 +1,13 @@
+
+#{version} 2788
+#{version.major} 479
+#{version.no_dots} 160
+#{version.major_minor} 134
+#{version.before_comma} 116
+#{version.dots_to_underscores} 99
+#{version.after_comma} 84
+#{version.major_minor_patch} 36
+#{version.dots_to_hyphens} 26
+#{version.after_comma.before_colon} 19
+#{version.major_minor.no_dots} 12
+#{version.before_comma.dots_to_underscores} 11

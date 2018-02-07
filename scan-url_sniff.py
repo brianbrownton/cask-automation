@@ -5,7 +5,6 @@ import sys
 import random
 
 path = './homebrew-cask/Casks'
-allNewUrls = []
 
 def toNum(n):
     try:
