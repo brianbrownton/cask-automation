@@ -139,10 +139,9 @@ for i in range(concurrent):
     t.daemon = True
     t.start()
 try:
-    # for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[:1500] ):
+    # for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[1:2] ):
     for index, filename in enumerate( sorted(os.listdir(path), key=str.lower) ):
         with open(path+'/'+filename,"r") as fi:
-
 
             version_start_string = "version "
             url_start_string = "url "
@@ -151,21 +150,21 @@ try:
             current_url = ""
             version_lines_list = []
             url_lines_list = []
-            homepage_lines_list = []
             isUsableVersion = False
             keepGoing = False
+            checkCounter = 0
 
             #build lists for later... not agreat way to do this but it works for now
             for ln in fi:
-                ln = ln.strip()
-                if ln.startswith(version_start_string):
-                    version_lines_list.append(ln)
+                ln_strip = ln.strip()
+                if ln_strip.startswith(version_start_string):
+                    version_lines_list.append(ln_strip)
                     
-                if ln.startswith(url_start_string):
-                    url_lines_list.append(ln)
+                if ln_strip.startswith(url_start_string):
+                    url_lines_list.append(ln_strip)
                     
-                if ln.startswith(homepage_start_string):
-                    homepage_lines_list.append(ln)
+                if ln_strip.startswith(homepage_start_string):
+                    homepage_url = ln_strip[len(homepage_start_string)+1:-1]
 
             for i in version_lines_list:
                 prep = i[len(version_start_string):].translate(None, '\'')
@@ -183,22 +182,23 @@ try:
                         if areAcceptableDigits:
                             current_version.append(prep)
 
-            for i in url_lines_list:
-                if '#{version}' in i and '#{version.' not in i:
-                    isUsableVersion = True
-                    current_url = i[len(url_start_string):].translate(None, '\"')
 
-            for i in homepage_lines_list:
-                homepage_url = i[len(homepage_start_string):].translate(None, '\'')
+            #TODO: detect more version permutations
+            if len(url_lines_list) is 1:
+                tmp = url_lines_list[0]
+                if '#{version}' in tmp and '#{version.' not in tmp:
+                    checkCounter += 1
+                    current_url = tmp[len(url_start_string)+1:-1]
 
-            if isUsableVersion and len(current_version) is 1:
+
+            if len(current_version) is 1:
                 orig_version = current_version[0]
                 the_split = orig_version.split('.')
                 versions_to_try = []
-                keepGoing = True
+                checkCounter += 1
 
             #only doing major.minor and major.minor.patch versions right now
-            if keepGoing == True and len(the_split) in (2,3):
+            if checkCounter is 2 and len(the_split) in (2,3):
                 orig_url = current_url.replace('#{version}', orig_version)
 
                 taskDict[filename[:-3]] = filename[:-3]
