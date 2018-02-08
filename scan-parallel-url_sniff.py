@@ -1,10 +1,11 @@
 from urlparse import urlparse
 from threading import Thread
-import httplib, sys, os, requests, signal, random
+import httplib, sys, os, requests, signal, random, time
 from Queue import Queue
 
 
 concurrent = 50
+timeoutWindow = 4
 path = './homebrew-cask/Casks'
 results = []
 
@@ -24,7 +25,7 @@ def toNum(n):
 def doCheckVersion(current_url, v_check_version, orig_request):
     v_check_url = current_url.replace('#{version}', v_check_version)
     try:
-        r = requests.head(v_check_url, timeout=2)
+        r = requests.head(v_check_url, timeout=timeoutWindow)
     except Exception:
         r = None
         pass
@@ -49,9 +50,9 @@ def doWork():
         # orig_url, orig_version, the_split, current_url, homepage_url, filename, index
 
         try:
-            orig_request = requests.head(orig_url, timeout=2)
+            orig_request = requests.head(orig_url, timeout=timeoutWindow)
         except Exception:
-            timeoutsList.append(filename[:-3])
+            timeoutsList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
             q.task_done()
             continue
@@ -59,9 +60,9 @@ def doWork():
         bad_version = str( int(the_split[0] ) + 5) + '.' + str( random.randint(100,9999) )
         bad_url = current_url.replace('#{version}', bad_version)
         try:
-            bad_request = requests.head(bad_url, timeout=2)
+            bad_request = requests.head(bad_url, timeout=timeoutWindow)
         except Exception:
-            timeoutsList.append(filename[:-3])
+            timeoutsList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
             q.task_done()
             continue
@@ -123,35 +124,23 @@ def doWork():
 
 
 
-        # status, url = getStatus(url)
-        # doSomethingWithResult(status, url)
+
         # print index, filename, "task done"
         del taskDict[filename[:-3]]
-        # print len(taskDict), q.qsize()
+        # print len(taskDict)
         # if len(taskDict) < 10:
             # print taskDict
         q.task_done()
 
-# def getStatus(ourl):
-#     try:
-#         url = urlparse(ourl)
-#         conn = httplib.HTTPConnection(url.netloc)   
-#         conn.request("HEAD", url.path)
-#         res = conn.getresponse()
-#         return res.status, ourl
-#     except:
-#         return "error", ourl
-
-# def doSomethingWithResult(status, url):
-#     print status, url
-
+start = time.clock()
 q = Queue(concurrent * 2)
 for i in range(concurrent):
     t = Thread(target=doWork)
     t.daemon = True
     t.start()
 try:
-    for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[:500] ):
+    # for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[:1500] ):
+    for index, filename in enumerate( sorted(os.listdir(path), key=str.lower) ):
         with open(path+'/'+filename,"r") as fi:
 
 
@@ -215,17 +204,20 @@ try:
                 taskDict[filename[:-3]] = filename[:-3]
 
                 q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
-    # print "joining queue"
+
     q.join()
-    # print "queue empty, join  unblocks"
-# except KeyboardInterrupt:
 except Exception:
     print "exception, exiting"
     sys.exit(1)
 
 # print results
 print 'list of timeouts:'
-print timeoutsList
+for i in timeoutsList:
+    print i[0], i[2]
+    print i[1]
+    print
+
+print 'time taken: '+str(int(time.clock()) - int(start))+'s'
 
 
 
