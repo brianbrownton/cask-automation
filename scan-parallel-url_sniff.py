@@ -1,13 +1,15 @@
 from urlparse import urlparse
 from threading import Thread
-import httplib, sys, os, requests, signal, random, time
+import httplib, sys, os, requests, signal, random, time, git
 from Queue import Queue
 
 
 concurrent = 50
 timeoutWindow = 4
-path = './homebrew-cask/Casks'
+path_subrepo = './homebrew-cask/'
+path_casks = './homebrew-cask/Casks'
 results = []
+
 
 taskDict = {}
 timeoutsList = []
@@ -132,16 +134,31 @@ def doWork():
             # print taskDict
         q.task_done()
 
+
+
+
+
+
 start = time.clock()
+
+
+# g = git.cmd.Git(path_subrepo)
+# g.pull()
+
+print "git pulling homebrew-cask..."
+git.cmd.Git(path_subrepo).pull()
+print "casks updated"
+
+
 q = Queue(concurrent * 2)
 for i in range(concurrent):
     t = Thread(target=doWork)
     t.daemon = True
     t.start()
 try:
-    # for index, filename in enumerate( sorted(os.listdir(path), key=str.lower)[1:2] ):
-    for index, filename in enumerate( sorted(os.listdir(path), key=str.lower) ):
-        with open(path+'/'+filename,"r") as fi:
+    # for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower)[1:2] ):
+    for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower) ):
+        with open(path_casks+'/'+filename,"r") as fi:
 
             version_start_string = "version "
             url_start_string = "url "
