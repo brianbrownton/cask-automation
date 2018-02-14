@@ -1,18 +1,18 @@
-from urlparse import urlparse
 from threading import Thread
-import httplib, sys, os, requests, signal, random, time, git
 from Queue import Queue
+import sys, os, requests, random, time, git
 
 
 concurrent = 50
 timeoutWindow = 4
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'
-results = []
 
 
 taskDict = {}
-timeoutsList = []
+timeoutsGoodList = []
+timeoutsBadList = []
+
 
 def toNum(n):
     try:
@@ -38,9 +38,9 @@ def doCheckVersion(current_url, v_check_version, orig_request):
 
     return None
 
+
 def doWork():
     while True:
-    # while len(taskDict) > 0:
         item = q.get()
         orig_url = item[0]
         orig_version = item[1]
@@ -54,7 +54,7 @@ def doWork():
         try:
             orig_request = requests.head(orig_url, timeout=timeoutWindow)
         except Exception:
-            timeoutsList.append( (filename[:-3], homepage_url, orig_version) )
+            timeoutsGoodList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
             q.task_done()
             continue
@@ -64,7 +64,7 @@ def doWork():
         try:
             bad_request = requests.head(bad_url, timeout=timeoutWindow)
         except Exception:
-            timeoutsList.append( (filename[:-3], homepage_url, orig_version) )
+            timeoutsBadList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
             q.task_done()
             continue
@@ -114,40 +114,28 @@ def doWork():
                     print "\tnew versions: ", possibleNewVersions
                     print
 
-                    # mydict = {}
-                    # mydict['index'] = str(index)
-                    # mydict['cask'] = filename[:-3]
-                    # mydict['orig_version'] = orig_version
-                    # mydict['homepage_url'] = homepage_url
-                    # mydict['orig_url'] = orig_url
-                    # mydict['possibleNewVersions'] = possibleNewVersions
 
-                    # results.append(mydict)
-
-
-
-
-        # print index, filename, "task done"
         del taskDict[filename[:-3]]
-        # print len(taskDict)
-        # if len(taskDict) < 10:
-            # print taskDict
         q.task_done()
-
-
-
-
 
 
 start = time.clock()
 
 
-# g = git.cmd.Git(path_subrepo)
-# g.pull()
+blCasks = []
+with open("blacklist.txt", "r") as fi:
+    for ln in fi:
+        blCasks.append(ln.strip())
+print "blacklisted casks:"
+for i in blCasks:
+    print i
+print
+
 
 print "git pulling homebrew-cask..."
 git.cmd.Git(path_subrepo).pull()
 print "casks updated"
+print "starting cask version checks..."
 
 
 q = Queue(concurrent * 2)
@@ -156,9 +144,12 @@ for i in range(concurrent):
     t.daemon = True
     t.start()
 try:
-    # for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower)[1:2] ):
     for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower) ):
-        with open(path_casks+'/'+filename,"r") as fi:
+        with open(path_casks+'/'+filename, "r") as fi:
+
+            #check if cask is blacklisted first
+            if filename[:-3] in blCasks:
+                pass
 
             version_start_string = "version "
             url_start_string = "url "
@@ -227,12 +218,18 @@ except Exception:
     print "exception, exiting"
     sys.exit(1)
 
-# print results
-print 'list of timeouts:'
-for i in timeoutsList:
+
+print 'list of timeouts (valid request):'
+for i in timeoutsGoodList:
     print i[0], i[2]
     print i[1]
     print
+print 'list of timeouts (bad request):'
+for i in timeoutsBadList:
+    print i[0], i[2]
+    print i[1]
+    print
+
 
 print 'time taken: '+str(int(time.clock()) - int(start))+'s'
 
