@@ -1,1 +1,14 @@
 insomnia
+agenda
+colormunki-display
+firetask
+flinto
+handshaker
+ipsecuritas
+lego-mindstorms-ev3
+nzbvortex
+runtastic-connect
+tilemill
+videobox
+yy
+yakyak
