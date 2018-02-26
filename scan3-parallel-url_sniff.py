@@ -1,10 +1,10 @@
 from threading import Thread
-from Queue import Queue
-import sys, os, requests, random, time, git
+import queue as Queue
+import sys, os, requests, random, time, git, string
 
 
-if sys.version[0] != str(2):
-    print("You need python2 to run this!")
+if sys.version[0] != str(3):
+    print("You need python3 to run this!")
     exit(1)
 
 
@@ -94,7 +94,7 @@ def doWork():
                 possibleNewVersions = []
 
                 if len(the_split) is 2:
-                    for n in xrange(1,4):
+                    for n in range(1,4):
                         v_check_version_maj = str( int(the_split[0] ) + n) + '.0'
                         v_check_version_min = str(the_split[0]) +'.'+ str( int(the_split[1] ) + n)
 
@@ -105,7 +105,7 @@ def doWork():
 
 
                 if len(the_split) is 3:
-                    for n in xrange(1,6):
+                    for n in range(1,6):
                         v_check_version_maj = str( int(the_split[0] ) + n) + '.0.0'
                         v_check_version_min = str(the_split[0]) +'.'+ str( int(the_split[1])+n ) +'.0'
                         v_check_version_patch = str(the_split[0]) +'.'+ str(the_split[1]) +'.'+ str( int(the_split[2] ) + n)
@@ -120,12 +120,12 @@ def doWork():
 
 
                 if len(possibleNewVersions):
-                    print '#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version
+                    print('#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version)
 
-                    print "\thompage url: ", homepage_url
-                    print "\tcurrent url: ", orig_url
-                    print "\tnew versions: ", possibleNewVersions
-                    print
+                    print("\thompage url: ", homepage_url)
+                    print("\tcurrent url: ", orig_url)
+                    print("\tnew versions: ", possibleNewVersions)
+                    print()
 
 
         del taskDict[filename[:-3]]
@@ -139,19 +139,19 @@ blCasks = []
 with open("blacklist.txt", "r") as fi:
     for ln in fi:
         blCasks.append(ln.strip())
-print "blacklisted casks:"
+print("blacklisted casks:")
 for i in sorted(blCasks):
-    print "\t",i
-print
+    print ("\t",i)
+print()
 
 
-print "git pulling homebrew-cask..."
-git.cmd.Git(path_subrepo).pull()
-print "casks updated"
-print "starting cask version checks..."
+# print("git pulling homebrew-cask...")
+# git.cmd.Git(path_subrepo).pull()
+# print("casks updated")
+# print("starting cask version checks...")
 
 
-q = Queue(concurrent * 2)
+q = Queue.Queue(concurrent * 2)
 for i in range(concurrent):
     t = Thread(target=doWork)
     t.daemon = True
@@ -188,10 +188,10 @@ try:
                     homepage_url = ln_strip[len(homepage_start_string)+1:-1]
 
             for i in version_lines_list:
-                prep = i[len(version_start_string):].translate(None, '\'')
+                prep = i[len(version_start_string):].replace('\'', '')
                 if prep != ':latest':
                     version_split = prep.split('.')
-                    if len(version_split) in xrange(2,4):
+                    if len(version_split) in range(2,4):
                         areAcceptableDigits = True;
 
                         for v in version_split:
@@ -218,36 +218,38 @@ try:
                 versions_to_try = []
                 checkCounter += 1
 
+
             #only doing major.minor and major.minor.patch versions right now
             if checkCounter is 2 and len(the_split) in (2,3):
                 orig_url = current_url.replace('#{version}', orig_version)
 
                 taskDict[filename[:-3]] = filename[:-3]
 
-                q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
+                # q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
 
     q.join()
-except Exception:
-    print "exception, exiting"
+except Exception as e:
+    print("exception, exiting")
+    print(e)
     sys.exit(1)
 
 
-print
-print 'list of timeouts (valid request):'
+print()
+print('list of timeouts (valid request):')
 for i in timeoutsGoodList:
-    print i[0], i[2]
-    print i[1]
-    print
+    print(i[0], i[2])
+    print(i[1])
+    print()
 
-print
-print 'list of timeouts (bad request):'
+print()
+print('list of timeouts (bad request):')
 for i in timeoutsBadList:
-    print i[0], i[2]
-    print i[1]
-    print
+    print(i[0], i[2])
+    print(i[1])
+    print()
 
 
-print 'time taken: '+str(int(time.time()) - int(start))+'s'
-print
+print('time taken: '+str(int(time.time()) - int(start))+'s')
+print()
 
 
