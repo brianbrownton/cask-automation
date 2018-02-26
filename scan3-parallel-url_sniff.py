@@ -145,10 +145,10 @@ for i in sorted(blCasks):
 print()
 
 
-# print("git pulling homebrew-cask...")
-# git.cmd.Git(path_subrepo).pull()
-# print("casks updated")
-# print("starting cask version checks...")
+print("git pulling homebrew-cask...")
+git.cmd.Git(path_subrepo).pull()
+print("casks updated")
+print("starting cask version checks...")
 
 
 q = Queue.Queue(concurrent * 2)
@@ -225,7 +225,7 @@ try:
 
                 taskDict[filename[:-3]] = filename[:-3]
 
-                # q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
+                q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
 
     q.join()
 except Exception as e:
