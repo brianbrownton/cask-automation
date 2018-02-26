@@ -4,7 +4,7 @@ import sys, os, requests, random, time, git
 
 
 concurrent = 50
-timeoutWindow = 4
+timeoutWindow = (7,4)
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'
 
@@ -12,6 +12,14 @@ path_casks = './homebrew-cask/Casks'
 taskDict = {}
 timeoutsGoodList = []
 timeoutsBadList = []
+
+
+hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36',
+       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+       'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+       'Accept-Encoding': 'none',
+       'Accept-Language': 'en-US,en;q=0.8',
+       'Connection': 'keep-alive'}
 
 
 def toNum(n):
@@ -27,7 +35,7 @@ def toNum(n):
 def doCheckVersion(current_url, v_check_version, orig_request):
     v_check_url = current_url.replace('#{version}', v_check_version)
     try:
-        r = requests.head(v_check_url, timeout=timeoutWindow)
+        r = requests.head(v_check_url, timeout=timeoutWindow, headers=hdr)
     except Exception:
         r = None
         pass
@@ -52,7 +60,7 @@ def doWork():
         # orig_url, orig_version, the_split, current_url, homepage_url, filename, index
 
         try:
-            orig_request = requests.head(orig_url, timeout=timeoutWindow)
+            orig_request = requests.head(orig_url, timeout=timeoutWindow, headers=hdr)
         except Exception:
             timeoutsGoodList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
@@ -62,7 +70,7 @@ def doWork():
         bad_version = str( int(the_split[0] ) + 5) + '.' + str( random.randint(100,9999) )
         bad_url = current_url.replace('#{version}', bad_version)
         try:
-            bad_request = requests.head(bad_url, timeout=timeoutWindow)
+            bad_request = requests.head(bad_url, timeout=timeoutWindow, headers=hdr)
         except Exception:
             timeoutsBadList.append( (filename[:-3], homepage_url, orig_version) )
             del taskDict[filename[:-3]]
