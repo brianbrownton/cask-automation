@@ -246,13 +246,13 @@ except Exception as e:
 print()
 print('list of timeouts (valid request) [', len(timeoutsGoodList), ']:')
 for index, item in enumerate(timeoutsGoodList):
-    print(f"{index}. ", item[0], item[2], item[1])
+    print(f"{index}. {item[0]} [{item[2]}] {item[1]}")
 print()
 
 print()
 print('list of timeouts (bad request) [', len(timeoutsBadList), ']:')
 for index, item in enumerate(timeoutsBadList):
-    print(f"{index}. ", item[0], item[2], item[1])
+    print(f"{index}. {item[0]} [{item[2]}] {item[1]}")
 print()
 
 
