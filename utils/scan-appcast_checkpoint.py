@@ -3,7 +3,7 @@ import signal
 import sys
 import subprocess
 
-path = './homebrew-cask/Casks'
+path = '../homebrew-cask/Casks'
 
 def signal_handler(signal, frame):
     sys.exit(0)

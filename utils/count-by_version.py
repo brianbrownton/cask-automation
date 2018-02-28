@@ -4,7 +4,7 @@ import signal
 import sys
 import random
 
-path = './homebrew-cask/Casks'
+path = '../homebrew-cask/Casks'
 eligibleCasks = []
 counter = 0
 

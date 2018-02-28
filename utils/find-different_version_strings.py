@@ -5,7 +5,7 @@ import sys
 import random
 
 
-path = './homebrew-cask/Casks'
+path = '../homebrew-cask/Casks'
 
 
 def signal_handler(signal, frame):

@@ -3,7 +3,7 @@ import signal
 import sys
 import subprocess
 
-path = './homebrew-cask/Casks'
+path = '../homebrew-cask/Casks'
 eligibleCasks = []
 eligibleCasksAnyUrl = []
 counter = 0
