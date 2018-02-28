@@ -13,7 +13,6 @@ videobox
 yy
 yakyak
 googleappengine
-data-science-studio
 abstract
 dragand
 ibm-cloud-cli
@@ -29,3 +28,6 @@ coccinellida
 simpletag
 vassal
 zekr
+astrometry
+harvest
+mightytext

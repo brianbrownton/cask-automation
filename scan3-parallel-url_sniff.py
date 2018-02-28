@@ -1,6 +1,6 @@
 from threading import Thread
 import queue as Queue
-import sys, os, requests, random, time, git, string
+import sys, os, requests, random, time, git, string, argparse
 
 
 if sys.version[0] != str(3):
@@ -8,8 +8,14 @@ if sys.version[0] != str(3):
     exit(1)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-a", "--all", help="disregard blacklist; scan all casks anyway",
+    action="store_true")
+args = parser.parse_args()
+
+
 concurrent = 50
-timeoutWindow = (7,4)
+timeoutWindow = 7
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'
 
@@ -139,9 +145,12 @@ blCasks = []
 with open("blacklist.txt", "r") as fi:
     for ln in fi:
         blCasks.append(ln.strip())
-print("blacklisted casks:")
-for i in sorted(blCasks):
-    print ("\t",i)
+if args.all:
+    print("blacklist disabled by --all flag")
+else:
+    print("blacklisted casks:")
+    for i in sorted(blCasks):
+        print ("\t",i)
 print()
 
 
@@ -161,7 +170,7 @@ try:
         with open(path_casks+'/'+filename, "r") as fi:
 
             #check if cask is blacklisted first
-            if filename[:-3] in blCasks:
+            if filename[:-3] in blCasks and args.all == False:
                 continue
 
             version_start_string = "version "
@@ -235,18 +244,16 @@ except Exception as e:
 
 
 print()
-print('list of timeouts (valid request):')
-for i in timeoutsGoodList:
-    print(i[0], i[2])
-    print(i[1])
-    print()
+print('list of timeouts (valid request) [', len(timeoutsGoodList), ']:')
+for index, item in enumerate(timeoutsGoodList):
+    print(f"{index}. ", item[0], item[2], item[1])
+print()
 
 print()
-print('list of timeouts (bad request):')
-for i in timeoutsBadList:
-    print(i[0], i[2])
-    print(i[1])
-    print()
+print('list of timeouts (bad request) [', len(timeoutsBadList), ']:')
+for index, item in enumerate(timeoutsBadList):
+    print(f"{index}. ", item[0], item[2], item[1])
+print()
 
 
 print('time taken: '+str(int(time.time()) - int(start))+'s')
