@@ -14,7 +14,7 @@ parser.add_argument("-a", "--all", help="disregard blacklist; scan all casks any
 args = parser.parse_args()
 
 
-concurrent = 50
+concurrent = 25
 timeoutWindow = 7
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'

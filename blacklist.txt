@@ -1,11 +1,7 @@
 insomnia
 agenda
-colormunki-display
 firetask
-flinto
 handshaker
-ipsecuritas
-lego-mindstorms-ev3
 nzbvortex
 runtastic-connect
 tilemill
@@ -20,7 +16,6 @@ karabiner-elements
 turtl
 utopia
 eagle
-jasp
 quip
 lazpaint
 latexdraw
@@ -29,5 +24,4 @@ simpletag
 vassal
 zekr
 astrometry
-harvest
-mightytext
+plexamp
