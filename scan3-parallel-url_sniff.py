@@ -25,6 +25,13 @@ timeoutsGoodList = []
 timeoutsBadList = []
 
 
+clear_line = "\033[K"
+totalCasks = len(os.listdir(path_casks))
+
+
+start = time.time()
+
+
 hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
@@ -126,19 +133,17 @@ def doWork():
 
 
                 if len(possibleNewVersions):
-                    print('#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version)
+                    print(clear_line+'#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version)
 
                     print("\thompage url: ", homepage_url)
                     print("\tcurrent url: ", orig_url)
                     print("\tnew versions: ", possibleNewVersions)
                     print()
 
-
         del taskDict[filename[:-3]]
         q.task_done()
 
 
-start = time.time()
 
 
 blCasks = []
@@ -236,6 +241,9 @@ try:
 
                 q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
 
+                print(clear_line+" ==> Working... "+str(index)+"/"+str(totalCasks)+" ("+str(round((index/totalCasks)*100))+"%, time: "+str(int(time.time()) - int(start))+'s'") <==", end='\r')
+
+    print(clear_line+"Waiting for net requests to finish...", end='\r')
     q.join()
 except Exception as e:
     print("exception, exiting")

@@ -25,3 +25,11 @@ vassal
 zekr
 astrometry
 plexamp
+wireshark
+wireshark-chmodbpf
+jet
+nordvpn
+data-science-studio
+deploystudio
+ridibooks
+thingsmacsandboxhelper
