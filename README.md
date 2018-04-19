@@ -1,6 +1,8 @@
 # cask-automation
 Personal project for detecting new binaries for the folks at homebrew-cask
 
+<img src="demo.gif" align="center">
+
 # usage
 `$ python scan3-parallel-url_sniff.py`
 
