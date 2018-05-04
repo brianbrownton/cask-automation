@@ -75,7 +75,8 @@ def doWork():
         homepage_url = item[4]
         filename = item[5]
         index = item[6]
-        # orig_url, orig_version, the_split, current_url, homepage_url, filename, index
+        appcast_url = item[7]
+        # orig_url, orig_version, the_split, current_url, homepage_url, filename, index, appcast_url
 
         try:
             orig_request = requests.head(orig_url, timeout=timeoutWindow, headers=hdr)
@@ -136,6 +137,7 @@ def doWork():
                     print(clear_line+'#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version)
 
                     print("\thompage url: ", homepage_url)
+                    print("\tappcast url: ", appcast_url)
                     print("\tcurrent url: ", orig_url)
                     print("\tnew versions: ", possibleNewVersions)
                     print()
@@ -181,8 +183,11 @@ try:
             version_start_string = "version "
             url_start_string = "url "
             homepage_start_string = "homepage "
+            appcast_start_string = "appcast "
             current_version = []
             current_url = ""
+            homepage_url = ""
+            appcast_url = ""
             version_lines_list = []
             url_lines_list = []
             isUsableVersion = False
@@ -194,12 +199,15 @@ try:
                 ln_strip = ln.strip()
                 if ln_strip.startswith(version_start_string):
                     version_lines_list.append(ln_strip)
-                    
+
                 if ln_strip.startswith(url_start_string):
                     url_lines_list.append(ln_strip)
-                    
+
                 if ln_strip.startswith(homepage_start_string):
                     homepage_url = ln_strip[len(homepage_start_string)+1:-1]
+
+                if ln_strip.startswith(appcast_start_string):
+                    appcast_url = ln_strip[len(appcast_start_string)+1:-2]
 
             for i in version_lines_list:
                 prep = i[len(version_start_string):].replace('\'', '')
@@ -239,7 +247,7 @@ try:
 
                 taskDict[filename[:-3]] = filename[:-3]
 
-                q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index) )
+                q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index, appcast_url) )
 
                 print(clear_line+" ==> Working... "+str(index)+"/"+str(totalCasks)+" ("+str(round((index/totalCasks)*100))+"%, time: "+str(int(time.time()) - int(start))+'s'") <==", end='\r')
 

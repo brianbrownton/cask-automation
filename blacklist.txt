@@ -16,3 +16,5 @@ quip
 astrometry
 data-science-studio
 deploystudio
+dingtalk
+jet
