@@ -1,3 +1,4 @@
+abstract
 firetask
 handshaker
 nzbvortex
@@ -6,15 +7,12 @@ tilemill
 videobox
 yy
 yakyak
-abstract
 dragand
 ibm-cloud-cli
 karabiner-elements
 turtl
 utopia
-quip
-astrometry
-data-science-studio
 deploystudio
 dingtalk
-jet
+cvmfs
+gamesalad

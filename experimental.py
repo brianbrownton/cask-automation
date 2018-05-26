@@ -32,7 +32,7 @@ totalCasks = len(os.listdir(path_casks))
 start = time.time()
 
 
-hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36',
+hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
        'Accept-Encoding': 'none',
@@ -70,13 +70,13 @@ def doWork():
         item = q.get()
         orig_url = item[0]
         orig_version = item[1]
-        the_split = item[2]
+        the_split = orig_version.split('.')
         current_url = item[3]
         homepage_url = item[4]
         filename = item[5]
         index = item[6]
         appcast_url = item[7]
-        # orig_url, orig_version, the_split, current_url, homepage_url, filename, index, appcast_url
+        # orig_url, orig_version, current_url, homepage_url, filename, index, appcast_url
 
         try:
             orig_request = requests.head(orig_url, timeout=timeoutWindow, headers=hdr)
@@ -134,11 +134,13 @@ def doWork():
 
 
                 if len(possibleNewVersions):
-                    print(clear_line +'#'+ str(index) +' - '+ filename[:-3] +' - '+ orig_version, "\n" \
-                        "\thompage url: ", homepage_url, "\n" \
-                        "\tappcast url: ", appcast_url, "\n" \
-                        "\tcurrent url: ", orig_url, "\n" \
-                        "\tnew versions: ", possibleNewVersions, "\n")
+                    print(clear_line+'#'+str(index)+' - ' + filename[:-3] + ' - ' + orig_version)
+
+                    print("\thompage url: ", homepage_url)
+                    print("\tappcast url: ", appcast_url)
+                    print("\tcurrent url: ", orig_url)
+                    print("\tnew versions: ", possibleNewVersions)
+                    print()
 
         del taskDict[filename[:-3]]
         q.task_done()
@@ -208,8 +210,12 @@ try:
                     appcast_url = ln_strip[len(appcast_start_string)+1:-2]
 
             for i in version_lines_list:
+                #strip both types of quotes
                 prep = i[len(version_start_string):].replace('\'', '')
-                if prep != ':latest':
+                prep = prep.replace('"', '')
+
+                #no latest, and no versions with commas
+                if prep != ':latest' and len(prep.split(',')) is 1:
                     version_split = prep.split('.')
                     if len(version_split) in range(2,4):
                         areAcceptableDigits = True;
@@ -224,28 +230,37 @@ try:
                             current_version.append(prep)
 
 
-            #TODO: detect more version permutations
+            #ref version: 4.1.2
+            #4.1.2      #{version} 2788
+            #4          #{version.major} 479
+            #412        #{version.no_dots} 160
+            #4.1        #{version.major_minor} 134
+            #4_1_1      #{version.dots_to_underscores} 99
+            #4-1-1      #{version.dots_to_hyphens} 26
+            #41         #{version.major_minor.no_dots} 12
+
+
+            #make sure there is only one download URL specified
             if len(url_lines_list) is 1:
-                tmp = url_lines_list[0]
-                if '#{version}' in tmp and '#{version.' not in tmp:
-                    checkCounter += 1
-                    current_url = tmp[len(url_start_string)+1:-1]
+                current_url = url_lines_list[0][len(url_start_string)+1:-1]
+                checkCounter += 1
 
-
+            #make sure there is only one version we are going to try to permutate
             if len(current_version) is 1:
                 orig_version = current_version[0]
-                the_split = orig_version.split('.')
-                versions_to_try = []
-                checkCounter += 1
+
+                #only working on maj.min or maj.min.patch
+                if len(orig_version.split('.')) in (2,3):
+                    checkCounter += 1
 
 
             #only doing major.minor and major.minor.patch versions right now
-            if checkCounter is 2 and len(the_split) in (2,3):
+            if checkCounter is 2:
                 orig_url = current_url.replace('#{version}', orig_version)
 
                 taskDict[filename[:-3]] = filename[:-3]
 
-                q.put( (orig_url, orig_version, the_split, current_url, homepage_url, filename, index, appcast_url) )
+                q.put( (orig_url, orig_version, current_url, homepage_url, filename, index, appcast_url) )
 
                 print(clear_line+" ==> Working... "+str(index)+"/"+str(totalCasks)+" ("+str(round((index/totalCasks)*100))+"%, time: "+str(int(time.time()) - int(start))+'s'") <==", end='\r')
 
