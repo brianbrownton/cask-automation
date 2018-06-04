@@ -4,9 +4,7 @@ Personal project for detecting new binaries for the folks at homebrew-cask
 <img src="demo.gif" align="center">
 
 # usage
-`$ python scan3-parallel-url_sniff.py`
-
-~~Should take about 400-500s (7-8m) with the default settings.~~
+`$ python scan.py`
 
 In Python 3 with some things on the blacklist, it usually takes about 180s (3m) to run through ~4000 casks.
 
