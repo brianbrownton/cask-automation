@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from threading import Thread
 import queue as Queue
 import sys, os, requests, random, time, git, string, argparse
@@ -147,7 +148,7 @@ def doWork():
 
 
 blCasks = []
-with open("blacklist.txt", "r") as fi:
+with open("blacklist-version.txt", "r") as fi:
     for ln in fi:
         blCasks.append(ln.strip())
 if args.all:
