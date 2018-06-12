@@ -133,8 +133,8 @@ for i in range(concurrent):
     t.start()
 try:
     for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower) ):
-        if index == 50:
-            break
+        # if index == 50:
+            # break
         with open(path_casks+'/'+filename, "r") as fi:
 
             cask = filename[:-3]
