@@ -218,7 +218,7 @@ try:
                 if prep != ':latest' and len(prep.split(',')) is 1:
                     version_split = prep.split('.')
                     if len(version_split) in range(2,4):
-                        areAcceptableDigits = True;
+                        areAcceptableDigits = True
 
                         for v in version_split:
                             test_num = toNum(v)

@@ -1,12 +1,14 @@
 #!/usr/bin/env python
+import sys
+if sys.version_info < (3,6):
+    print("You need python3.6+ to run this!")
+    exit(1)
+
 from threading import Thread
 import queue as Queue
-import sys, os, requests, random, time, git, string, argparse
+import os, requests, random, time, git, string, argparse
 
 
-if sys.version[0] != str(3):
-    print("You need python3 to run this!")
-    exit(1)
 
 
 parser = argparse.ArgumentParser()
@@ -206,14 +208,14 @@ try:
                     homepage_url = ln_strip[len(homepage_start_string)+1:-1]
 
                 if ln_strip.startswith(appcast_start_string):
-                    appcast_url = ln_strip[len(appcast_start_string)+1:-2]
+                    appcast_url = ln_strip[len(appcast_start_string)+1:-1]
 
             for i in version_lines_list:
                 prep = i[len(version_start_string):].replace('\'', '')
                 if prep != ':latest':
                     version_split = prep.split('.')
                     if len(version_split) in range(2,4):
-                        areAcceptableDigits = True;
+                        areAcceptableDigits = True
 
                         for v in version_split:
                             test_num = toNum(v)

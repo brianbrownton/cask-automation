@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 import sys
-if sys.version[0] != str(3):
-    print("You need python3 to run this!")
+if sys.version_info < (3,6):
+    print("You need python3.6+ to run this!")
     exit(1)
 
 from threading import Thread
 from cityhash import CityHash128
-import queue, os, random, time, git, string, argparse, subprocess, io, csv, requests, sqlite3, re
+import queue, os, random, time, git, string, argparse, subprocess, io, csv, requests, sqlite3, re, yaml
 
-#todo - check existing PRs before listing a cask for update
-# curl -su {github_username}:{token} https://api.github.com/repos/homebrew/homebrew-cask/pulls?per_page=200 | grep "title"
 
 hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36',
        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -18,21 +16,32 @@ hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKi
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
 
-concurrent = 4
+concurrent = 5
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'
 blacklist_file = 'blacklist-appcast.txt'
 sqlite_file = 'cask_appcasts.sqlite'
+secrets_file = 'secrets.yaml'
 
 
 taskDict = {}
 blDict = {}
+badCasks = []
+
+
+try:
+    with open(secrets_file, 'r') as f:
+        secrets = yaml.load(f)
+except:
+    print(f"Could not open file: {secrets_file} - are you sure it exists and contains a github token and username?")
+    exit(1)
+pulls_raw = subprocess.getoutput(f"curl -su {secrets['username']}:{secrets['token']} https://api.github.com/repos/homebrew/homebrew-cask/pulls?per_page=200 | grep title")
+pulls_list = pulls_raw.split('\n')
 
 
 clear_line = "\033[K"
 totalCasks = len(os.listdir(path_casks))
 start = time.time()
-
 
 
 def doWork():
@@ -42,6 +51,7 @@ def doWork():
         cask = item[1]
         homepage_url = str(item[2])
         version = str(item[3])
+        isGithubAppcast = False
 
         del taskDict[cask]
 
@@ -56,8 +66,8 @@ def doWork():
         try:
             req = requests.get(appcast_url, timeout=7, headers=hdr)
         except Exception as e:
-            #todo - handle exceptions here to find bad appcasts
-            pass
+            badCasks.append((cask, appcast_url))
+
 
         if req is not None:
             processed_text = re.sub("<pubDate>.*</pubDate>","", req.text, 0, flags=re.M|re.I)
@@ -81,10 +91,22 @@ def doWork():
                     upd = f"UPDATE casks SET currentHash=\"{live_hash}\" WHERE name=\"{cask}\""
                     c.execute(upd)
 
+                # check for open PRs on this cask
+                openPrString = ""
+                for ind, ele in enumerate(pulls_list):
+                    openPr = re.search(r'\b'+cask+r'\b', ele, flags=re.I)
+                    if openPr is not None:
+                        openPrString = "(PR ALREADY OPEN)"
 
-                print(f"{clear_line}#{str(index)} - {cask} - {version} \n" \
-                    f"{clear_line}\thompage url: {homepage_url}\n" \
-                    f"{clear_line}\tappcast url: {appcast_url}")
+                #make github urls nicer for clicking
+                if "github" in appcast_url and "atom" in appcast_url:
+                    isGithubAppcast = True
+                    last_line = f"\tappcast url: {appcast_url[:-5]} (atom removed)\n"
+                else:
+                    last_line = f"\tappcast url: {appcast_url}\n"
+
+                print(f"{clear_line}#{str(index)} - {cask} - {version} {openPrString}\n" \
+                    f"\thompage url: {homepage_url}\n{last_line}")
 
             con.commit()
             con.close()
@@ -101,7 +123,7 @@ with open(blacklist_file, "r") as fi:
     for ln in fi:
         the_cask = ln.strip()
         blDict[the_cask] = the_cask
-print("✔ blacklist loaded")
+print("✔ blacklist loaded\n")
 
 
 q = queue.Queue(concurrent * 2)
@@ -111,8 +133,8 @@ for i in range(concurrent):
     t.start()
 try:
     for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower) ):
-        # if index == 500:
-            # break
+        if index == 50:
+            break
         with open(path_casks+'/'+filename, "r") as fi:
 
             cask = filename[:-3]
@@ -143,9 +165,13 @@ try:
 
     q.join()
 except Exception as e:
-    print("exception, exiting")
+    print(clear_line, "exception, exiting")
     print(e)
-    sys.exit(1)
+    exit(1)
 
+print(f"{clear_line}\nbad appcasts [{len(badCasks)}]:")
+for index, item in enumerate(badCasks):
+    print(f"{index}. {item[0]} [{item[1]}]")
+print()
 
-print(f"{clear_line}time taken: {str(int(time.time()) - int(start))}s\n")
+print(f"time taken: {str(int(time.time()) - int(start))}s\n")

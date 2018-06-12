@@ -14,7 +14,7 @@ sqlite_file = 'cask_appcasts.sqlite'
 
 
 print("  git pulling homebrew-cask...")
-# git.cmd.Git(path_subrepo).pull()
+git.cmd.Git(path_subrepo).pull()
 print("✔ casks updated")
 
 
