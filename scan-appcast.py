@@ -16,7 +16,7 @@ hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKi
        'Accept-Language': 'en-US,en;q=0.8',
        'Connection': 'keep-alive'}
 
-concurrent = 5
+concurrent = 4
 path_subrepo = './homebrew-cask/'
 path_casks = './homebrew-cask/Casks'
 blacklist_file = 'blacklist-appcast.txt'
@@ -76,27 +76,39 @@ def doWork():
             con = sqlite3.connect(sqlite_file)
             c = con.cursor()
 
-            cHash_result = c.execute(f"SELECT currentHash FROM casks WHERE name=\"{cask}\"").fetchone()
+            db_result = c.execute(f"SELECT currentHash, version FROM casks WHERE name=\"{cask}\"").fetchone()
+
+            showMessage = False
             cHash = ""
-            if cHash_result is not None:
-                cHash = cHash_result[0]
+            if db_result is not None:
+                cHash = db_result[0]
+                version_db = db_result[1]
 
-            if live_hash != cHash:
-                try:
-                    # new casks
-                    ins = f"INSERT INTO casks (name, currentHash) VALUES (\"{cask}\", \"{live_hash}\")"
-                    c.execute(ins)
-                except sqlite3.IntegrityError as e:
-                    #existing cask
-                    upd = f"UPDATE casks SET currentHash=\"{live_hash}\" WHERE name=\"{cask}\""
-                    c.execute(upd)
+                if version_db != version:
+                    sql = f"UPDATE casks SET version=\"{version}\" WHERE name=\"{cask}\""
+                    c.execute(sql)
 
+                if live_hash != cHash:
+                    sql = f"UPDATE casks SET currentHash=\"{live_hash}\" WHERE name=\"{cask}\""
+                    c.execute(sql)
+                    showMessage = True
+            else:
+                # new casks
+                sql = f"INSERT INTO casks (name, currentHash, version) VALUES (\"{cask}\", \"{live_hash}\", \"{version}\")"
+                c.execute(sql)
+
+
+            if showMessage:
                 # check for open PRs on this cask
-                openPrString = ""
+                statusString = ""
                 for ind, ele in enumerate(pulls_list):
                     openPr = re.search(r'\b'+cask+r'\b', ele, flags=re.I)
                     if openPr is not None:
-                        openPrString = "(PR ALREADY OPEN)"
+                        statusString += "(PR ALREADY OPEN)"
+
+                # see if our db version of cask is outdated (a PR has been accepted since our last check)
+                if version_db != version && version_db is not None:
+                    statusString += f" *PROBABLY UPDATED ({version_db} vs {version})*"
 
                 #make github urls nicer for clicking
                 if "github" in appcast_url and "atom" in appcast_url:
@@ -105,7 +117,7 @@ def doWork():
                 else:
                     last_line = f"\tappcast url: {appcast_url}\n"
 
-                print(f"{clear_line}#{str(index)} - {cask} - {version} {openPrString}\n" \
+                print(f"{clear_line}#{str(index)} - {cask} - {version} {statusString}\n" \
                     f"\thompage url: {homepage_url}\n{last_line}")
 
             con.commit()
@@ -133,8 +145,8 @@ for i in range(concurrent):
     t.start()
 try:
     for index, filename in enumerate( sorted(os.listdir(path_casks), key=str.lower) ):
-        # if index == 50:
-            # break
+        if index == 500:
+            break
         with open(path_casks+'/'+filename, "r") as fi:
 
             cask = filename[:-3]

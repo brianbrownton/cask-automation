@@ -23,3 +23,10 @@ seadrive
 ip-scanner
 grids
 murus
+protonvpn
+file-juicer
+harvest
+moonitor
+dbeaver-enterprise
+mi
+unseen
