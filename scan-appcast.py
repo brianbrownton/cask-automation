@@ -107,7 +107,7 @@ def doWork():
                         statusString += "(PR ALREADY OPEN)"
 
                 # see if our db version of cask is outdated (a PR has been accepted since our last check)
-                if version_db != version && version_db is not None:
+                if version_db != version and version_db is not None:
                     statusString += f" *PROBABLY UPDATED ({version_db} vs {version})*"
 
                 #make github urls nicer for clicking
