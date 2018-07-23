@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from cityhash import CityHash128
+from stripDynamicTags import stripDynamicTags
 import sys, git, requests, sqlite3, subprocess, re
 
 hdr = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36',
@@ -14,7 +15,7 @@ sqlite_file = 'cask_appcasts.sqlite'
 
 
 print("  git pulling homebrew-cask...")
-git.cmd.Git(path_subrepo).pull()
+# git.cmd.Git(path_subrepo).pull()
 print("✔ casks updated")
 
 
@@ -35,8 +36,8 @@ for cask in sys.argv[1:]:
             pass
 
     if req is not None:
-        processed_text = re.sub("<pubDate>.*</pubDate>","", req.text, 0, flags=re.M|re.I)
-        live_hash = str(CityHash128(processed_text))
+        live_hash = str(CityHash128( stripDynamicTags(req.text) ))
+        print(live_hash)
 
         cHash_result = c.execute(f"SELECT currentHash FROM casks WHERE name=\"{cask}\"").fetchone()
 

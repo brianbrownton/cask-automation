@@ -6,6 +6,7 @@ if sys.version_info < (3,6):
 
 from threading import Thread
 from cityhash import CityHash128
+from stripDynamicTags import stripDynamicTags
 import queue, os, random, time, git, string, argparse, subprocess, io, csv, requests, sqlite3, re, yaml
 
 
@@ -71,7 +72,7 @@ def doWork():
 
         if req is not None:
             processed_text = re.sub("<pubDate>.*</pubDate>","", req.text, 0, flags=re.M|re.I)
-            live_hash = str(CityHash128(processed_text))
+            live_hash = str(CityHash128( stripDynamicTags(req.text) ))
 
             con = sqlite3.connect(sqlite_file)
             c = con.cursor()
@@ -88,7 +89,8 @@ def doWork():
                     sql = f"UPDATE casks SET version=\"{version}\" WHERE name=\"{cask}\""
                     c.execute(sql)
 
-                if live_hash != cHash:
+                # 331433211908504363047846541789220002933 is the hash of the github error page
+                if live_hash not in [cHash, "331433211908504363047846541789220002933"]:
                     sql = f"UPDATE casks SET currentHash=\"{live_hash}\" WHERE name=\"{cask}\""
                     c.execute(sql)
                     showMessage = True
