@@ -3,7 +3,7 @@ Personal project for detecting new binaries for the folks at homebrew-cask
 
 
 # usage
-`$ python scan-appcast.py`
+`$ python scan.py`
 
 In Python 3 with some things on the blacklist, it usually takes about 900s (15m).
 
